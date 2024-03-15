@@ -61,12 +61,11 @@ fi
 if [ -f ".setup_complete" ]; then
 	# If hikka is already installed by this script
 	PYVER="3.10"
-	printf "\rExisting installation detected"
-	clear
-	"python$PYVER" -m hikka "$@"
-	exit $?
-elif [ "$DIR_CHANGED" = "yes" ]; then
-	cd ..
+	printf "\rExisting installation detected. Hikka is already installed.\n"
+	# Теперь скрипт не будет пытаться запустить Hikka, даже если обнаружена существующая установка
+	# clear
+	# "python$PYVER" -m hikka "$@"
+	# exit $?
 fi
 
 ##############################################################################
