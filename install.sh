@@ -136,7 +136,20 @@ cd "${WORKING_DIR}/Hikka" || {
 
 
 printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
+printf "\n\r\033[0;34mCreating config.json...\e[0m"
+
+# Создаем файл config.json внутри папки Hikka
+cat > "${WORKING_DIR}/Hikka/config.json" <<EOL
+{
+    "api_id": 7301124,
+    "api_hash": "46eb50618e7a00ca8b165275d9e0fe0b",
+    "app_name": "Discipulus Pietas Omnis"
+}
+EOL
+
+printf "\r\033[K\033[0;32mconfig.json created!\e[0m"
 printf "\n\r\033[0;34mInstalling python dependencies...\e[0m"
+
 
 # shellcheck disable=SC2086
 runin "$SUDO_CMD python$PYVER" -m pip install --upgrade pip setuptools wheel --user
