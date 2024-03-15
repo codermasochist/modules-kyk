@@ -1,24 +1,27 @@
 #!/bin/bash
 
+# Получаем текущую рабочую директорию
+WORKING_DIR=$(pwd)
+
 runin() {
 	# Runs the arguments, piping stderr to logfile
-	{ "$@" 2>>../hikka-install.log || return $?; } | while read -r line; do
-		printf "%s\n" "$line" >>../hikka-install.log
+	{ "$@" 2>>"${WORKING_DIR}/hikka-install.log" || return $?; } | while read -r line; do
+		printf "%s\n" "$line" >>"${WORKING_DIR}/hikka-install.log"
 	done
 }
 
 runout() {
 	# Runs the arguments, piping stderr to logfile
-	{ "$@" 2>>hikka-install.log || return $?; } | while read -r line; do
-		printf "%s\n" "$line" >>hikka-install.log
+	{ "$@" 2>>"${WORKING_DIR}/hikka-install.log" || return $?; } | while read -r line; do
+		printf "%s\n" "$line" >>"${WORKING_DIR}/hikka-install.log"
 	done
 }
 
 errorin() {
-	cat ../hikka-install.log
+	cat "${WORKING_DIR}/hikka-install.log"
 }
 errorout() {
-	cat hikka-install.log
+	cat "${WORKING_DIR}/hikka-install.log"
 }
 
 SUDO_CMD=""
@@ -68,7 +71,7 @@ fi
 
 ##############################################################################
 
-echo "Installing..." >hikka-install.log
+echo "Installing..." >"${WORKING_DIR}/hikka-install.log"
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; then
 	PKGMGR="apt install -y"
@@ -121,16 +124,17 @@ printf "\n\r\033[0;34mCloning repo...\e[0m"
 ##############################################################################
 
 # shellcheck disable=SC2086
-${SUDO_CMD}rm -rf Hikka
+${SUDO_CMD}rm -rf "${WORKING_DIR}/Hikka"
 # shellcheck disable=SC2086
-runout ${SUDO_CMD}git clone https://github.com/hikariatama/Hikka/ || {
+runout ${SUDO_CMD}git clone https://github.com/hikariatama/Hikka/ "${WORKING_DIR}/Hikka" || {
 	errorout "Clone failed."
 	exit 3
 }
-cd Hikka || {
+cd "${WORKING_DIR}/Hikka" || {
 	printf "\r\033[0;33mRun: \033[1;33mpkg install git\033[0;33m and restart installer"
 	exit 7
 }
+
 
 printf "\r\033[K\033[0;32mRepo cloned!\e[0m"
 printf "\n\r\033[0;34mInstalling python dependencies...\e[0m"
@@ -142,8 +146,8 @@ runin "$SUDO_CMD python$PYVER" -m pip install -r requirements.txt --upgrade --us
 	errorin "Requirements failed!"
 	exit 4
 }
-rm -f ../hikka-install.log
-touch .setup_complete
+rm -f "${WORKING_DIR}/hikka-install.log"
+touch "${WORKING_DIR}/.setup_complete"
 
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
 printf "\n\033[0;32mStarting...\e[0m\n\n"
