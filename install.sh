@@ -150,9 +150,10 @@ rm -f "${WORKING_DIR}/hikka-install.log"
 touch "${WORKING_DIR}/.setup_complete"
 
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
-printf "\n\033[0;32mStarting...\e[0m\n\n"
+printf "\n\033[0;32mHikka installation complete! To start it, run: python$PYVER -m hikka\e[0m\n\n"
 
-${SUDO_CMD}"python$PYVER" -m hikka "$@" || {
-	printf "\033[1;31mPython scripts failed\e[0m"
-	exit 5
-}
+# Закомментированная строка, которая запускала бы Hikka
+# ${SUDO_CMD}"python$PYVER" -m hikka "$@" || {
+# 	printf "\033[1;31mPython scripts failed\e[0m"
+# 	exit 5
+# }
