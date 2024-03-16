@@ -1,296 +1,290 @@
 # ---------------------------------------------------------------------------------
 #  /\_/\  🌐 This module was loaded through https://t.me/hikkamods_bot
-# ( o.o )  🔐 Licensed under the CC BY-NC-ND 4.0.
+# ( o.o )  🔐 Licensed under the CC BY-NC-SA 4.0.
 #  > ^ <   ⚠️ Owner of heta.hikariatama.ru doesn't take any responsibilities or intellectual property rights regarding this script
 # ---------------------------------------------------------------------------------
-# Name: GPT
-# Author: D4n13l3k00
+# Name: chatgpt
+# Author: MoriSummerz
 # Commands:
-# .setgpt | .gpt | .cgpt | .cgptreset
+# .gpt
 # ---------------------------------------------------------------------------------
 
-# .------.------.------.------.------.------.------.------.------.------.
-# |D.--. |4.--. |N.--. |1.--. |3.--. |L.--. |3.--. |K.--. |0.--. |0.--. |
-# | :/\: | :/\: | :(): | :/\: | :(): | :/\: | :(): | :/\: | :/\: | :/\: |
-# | (__) | :\/: | ()() | (__) | ()() | (__) | ()() | :\/: | :\/: | :\/: |
-# | '--'D| '--'4| '--'N| '--'1| '--'3| '--'L| '--'3| '--'K| '--'0| '--'0|
-# `------`------`------`------`------`------`------`------`------`------'
-#
-#                     Copyright 2023 t.me/D4n13l3k00
-#           Licensed under the Creative Commons CC BY-NC-ND 4.0
-#
-#                    Full license text can be found at:
-#       https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-#
-#                           Human-friendly one:
-#            https://creativecommons.org/licenses/by-nc-nd/4.0
+__version__ = (1, 0, 0)
 
-# meta developer: @D4n13l3k00
+import contextlib
 
-# require httpx
+"""
+    █▀▄▀█ █▀█ █▀█ █ █▀ █ █ █▀▄▀█ █▀▄▀█ █▀▀ █▀█
+    █ ▀ █ █▄█ █▀▄ █ ▄█ █▄█ █ ▀ █ █ ▀ █ ██▄ █▀▄
+    Copyright 2022 t.me/morisummermods
+    Licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+"""
+# meta developer: @morisummermods
+# meta banner: https://i.imgur.com/H1vPM6U.jpg
 
-import json
-from typing import List
+import logging
+import re
 
-import httpx
-from telethon import types
+import requests
+from telethon.tl.types import Message
 
-from .. import loader, utils  # type: ignore
+from .. import loader, utils  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 @loader.tds
-class OpenAIGPTMod(loader.Module):
-    "OpenAI GPT"
+class ChatGPT(loader.Module):
+    """ChatGPT AI API interaction"""
+
     strings = {
-        "name": "GPT",
-        "pref": "<b>[GPT]</b> {}",
-        "prefcgpt": "<b>[ChatGPT]</b> {}",
-        "prefom": "<b>[OpenModerator]</b> {}",
-        "result": (
-            "<b>Prompt</b>: {prompt}\n\n<b>Result:</b> {text}\n\n"
-            "<b>Used tokens:</b> {prompt_tokens}+{completion_tokens}={total_tokens}"
+        "name": "ChatGPT",
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>No arguments"
+            " provided</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Question:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Answer:</b> {answer}"
+        ),
+        "loading": "<code>Loading...</code>",
+        "no_api_key": (
+            "<b>🚫 No API key provided</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Get it from official OpenAI"
+            " website and add it to config</i>"
+        ),
+    }
+
+    strings_ru = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Не указаны"
+            " аргументы</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Вопрос:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Ответ:</b> {answer}"
+        ),
+        "loading": "<code>Загрузка...</code>",
+        "no_api_key": (
+            "<b>🚫 Не указан API ключ</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Получите его на официальном"
+            " сайте OpenAI и добавьте в конфиг</i>"
+        ),
+    }
+
+    strings_es = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>No se han"
+            " proporcionado argumentos</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Pregunta:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Respuesta:</b>"
+            " {answer}"
+        ),
+        "loading": "<code>Cargando...</code>",
+        "no_api_key": (
+            "<b>🚫 No se ha proporcionado una clave API</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Obtenga una en el sitio web"
+            " oficial de OpenAI y agréguela a la configuración</i>"
+        ),
+    }
+
+    strings_fr = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Aucun argument"
+            " fourni</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Question:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Réponse:</b> {answer}"
+        ),
+        "loading": "<code>Chargement...</code>",
+        "no_api_key": (
+            "<b>🚫 Aucune clé API fournie</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Obtenez-en un sur le site"
+            " officiel d'OpenAI et ajoutez-le à la configuration</i>"
+        ),
+    }
+
+    strings_de = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Keine Argumente"
+            " angegeben</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Frage:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Antwort:</b> {answer}"
+        ),
+        "loading": "<code>Laden...</code>",
+        "no_api_key": (
+            "<b>🚫 Kein API-Schlüssel angegeben</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Holen Sie sich einen auf der"
+            " offiziellen OpenAI-Website und fügen Sie ihn der Konfiguration hinzu</i>"
+        ),
+    }
+
+    strings_tr = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Argümanlar"
+            " verilmedi</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Soru:</b> {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Cevap:</b> {answer}"
+        ),
+        "loading": "<code>Yükleniyor...</code>",
+        "no_api_key": (
+            "<b>🚫 API anahtarı verilmedi</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> OpenAI'nın resmi websitesinden"
+            " alın ve yapılandırmaya ekleyin</i>"
+        ),
+    }
+
+    strings_uz = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Argumentlar"
+            " ko'rsatilmadi</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Savol:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Javob:</b> {answer}"
+        ),
+        "loading": "<code>Yuklanmoqda...</code>",
+        "no_api_key": (
+            "<b>🚫 API kalit ko'rsatilmadi</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Ofitsial OpenAI veb-saytidan"
+            " oling</i>"
+        ),
+    }
+
+    strings_it = {
+        "no_args": (
+            "<emoji document_id=5312526098750252863>🚫</emoji> <b>Nessun argomento"
+            " fornito</b>"
+        ),
+        "question": (
+            "<emoji document_id=5974038293120027938>👤</emoji> <b>Domanda:</b>"
+            " {question}\n"
+        ),
+        "answer": (
+            "<emoji document_id=5199682846729449178>🤖</emoji> <b>Risposta:</b> {answer}"
+        ),
+        "loading": "<code>Caricamento...</code>",
+        "no_api_key": (
+            "<b>🚫 Nessuna chiave API fornita</b>\n<i><emoji"
+            " document_id=5199682846729449178>ℹ️</emoji> Ottienila dal sito ufficiale"
+            " di OpenAI e aggiungila al tuo file di configurazione</i>"
         ),
     }
 
     def __init__(self):
         self.config = loader.ModuleConfig(
-            *("MODEL", "text-davinci-003", "Model name"),
-            *(
-                "COMPLETION_ENDPOINT",
-                "https://api.openai.com/v1/completions",
-                "Completions API endpoint",
-            ),
-            *("MAX_TOKENS", 4096, "Maximum tokens"),
-            *("TEMPERATURE", 0.7, "Temperature"),
-            *("DEBUG", False, "Debug mode for answers"),
-            *(
-                "CGPT_ENDPOINT",
-                "https://api.openai.com/v1/chat/completions",
-                "ChatGPT API endpoint",
-            ),
-            *("CGPT_MODEL", "gpt4-turbo", "ChatGPT model name"),
-            *("CGPT_TEMPERATURE", 0.7, "ChatGPT temperature"),
-            *(
-                "CGPT_SYSTEM_MSG",
-                "You are Pavel Durov, CEO and owner of Telegram",
-                "ChatGPT system message",
-            ),
-            *(
-                "MODERATION_ENDPOINT",
-                "https://cooders.veryscrappy.moe/proxy/azure/openai",
-                "OpenAI's moderation endpoint",
+            loader.ConfigValue(
+                "api_key",
+                "",
+                "API key from OpenAI",
+                validator=loader.validators.Hidden(loader.validators.String()),
             ),
         )
 
-    async def client_ready(self, client, db):
-        self._client = client
-        self._db = db
-        self._db_name = "OpenAI_GPT"
-        self.messages_history_default = [
-            {
-                "role": "system",
-                "content": self.config["CGPT_SYSTEM_MSG"],
-            }
-        ]
-        self.messages_history = [] + self.messages_history_default
+    async def _make_request(
+        self,
+        method: str,
+        url: str,
+        headers: dict,
+        data: dict,
+    ) -> dict:
+        resp = await utils.run_sync(
+            requests.request,
+            method,
+            url,
+            headers=headers,
+            json=data,
+        )
+        return resp.json()
 
-    @loader.owner
-    async def setgptcmd(self, m: types.Message):
-        "<token> - set OpenAI access token"
-        token: str or None = utils.get_args_raw(m)
-        if not token:
-            return await utils.answer(m, self.strings("pref", m).format("No token"))
-        self._db.set(self._db_name, "token", token)
-        await utils.answer(m, self.strings("pref", m).format("Token set"))
+    def _process_code_tags(self, text: str) -> str:
+        return re.sub(
+            r"`(.*?)`",
+            r"<code>\1</code>",
+            re.sub(r"```(.*?)```", r"<code>\1</code>", text, flags=re.DOTALL),
+            flags=re.DOTALL,
+        )
 
-    @loader.owner
-    async def gptcmd(self, m: types.Message):
-        "<text/reply_to_text> - generate text"
-        token = self._db.get(self._db_name, "token")
-        if not token:
-            return await utils.answer(
-                m, self.strings("pref", m).format("No token set! Use .setgpt <token>")
-            )
-        prompt = utils.get_args_raw(m)
-        reply = await m.get_reply_message()
-        if reply:
-            prompt = prompt or reply.raw_text
+    async def _get_chat_completion(self, prompt: str) -> str:
+        resp = await self._make_request(
+            method="POST",
+            url="https://api.openai.com/v1/chat/completions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f'Bearer {self.config["api_key"]}',
+            },
+            data={
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        if resp.get("error", None):
+            return f"🚫 {resp['error']['message']}"
+        return resp["choices"][0]["message"]["content"]
 
-        if not prompt:
-            return await utils.answer(m, self.strings("pref", m).format("No text"))
+    @loader.command(
+        ru_doc="<вопрос> - Задать вопрос",
+        it_doc="<domanda> - Fai una domanda",
+        fr_doc="<question> - Posez une question",
+        de_doc="<frage> - Stelle eine Frage",
+        es_doc="<pregunta> - Haz una pregunta",
+        tr_doc="<soru> - Soru sor",
+        uz_doc="<savol> - Savol ber",
+    )
+    async def gpt(self, message: Message):
+        """<question> - Ask a question"""
+        if self.config["api_key"] == "":
+            return await utils.answer(message, self.strings("no_api_key"))
 
-        m = await utils.answer(m, self.strings("pref", m).format("Generating..."))
-        async with httpx.AsyncClient(timeout=300) as client:
-            response = await client.post(
-                self.config["COMPLETION_ENDPOINT"],
-                headers={
-                    "Authorization": f"Bearer {token}",
-                },
-                json={
-                    "model": self.config["MODEL"],
-                    "prompt": prompt,
-                    "max_tokens": self.config["MAX_TOKENS"],
-                    "temperature": self.config["TEMPERATURE"],
-                },
-            )
-            j = response.json()
-            if response.status_code != 200:
-                if self.config["DEBUG"]:
-                    return await utils.answer(
-                        m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                    )
-                return await utils.answer(
-                    m,
-                    self.strings("pref", m).format(
-                        f"<b>Error:</b> {response.status_code} {response.reason_phrase}"
+        args = utils.get_args_raw(message)
+        if not args:
+            return await utils.answer(message, self.strings("no_args"))
+
+        await utils.answer(
+            message,
+            "\n".join(
+                [
+                    self.strings("question").format(question=args),
+                    self.strings("answer").format(answer=self.strings("loading")),
+                ]
+            ),
+        )
+        answer = await self._get_chat_completion(args)
+        await utils.answer(
+            message,
+            "\n".join(
+                [
+                    self.strings("question").format(question=args),
+                    self.strings("answer").format(
+                        answer=self._process_code_tags(answer)
                     ),
-                )
-            if self.config["DEBUG"]:
-                return await utils.answer(
-                    m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                )
-            text = j["choices"][0]["text"].strip("\n").strip(" ")
-            if j["choices"][0]["finish_reason"] == "length":
-                text += "\n<code>TOKEN_LIMIT. Use .config to change them.</code>"
-            await utils.answer(
-                m,
-                self.strings("pref", m).format(
-                    self.strings("result", m).format(
-                        prompt=prompt, text=text, **j["usage"]
-                    )
-                ),
-            )
-
-    @loader.owner
-    async def cgptcmd(self, m: types.Message):
-        "<text/reply_to_text> - answer ChatGPT (gpt-3.5-turbo)"
-        token = self._db.get(self._db_name, "token")
-        if not token:
-            return await utils.answer(
-                m,
-                self.strings("prefcgpt", m).format("No token set! Use .setgpt <token>"),
-            )
-
-        prompt = utils.get_args_raw(m)
-        reply = await m.get_reply_message()
-        if reply:
-            prompt = prompt or reply.raw_text
-
-        if not prompt:
-            return await utils.answer(m, self.strings("prefcgpt", m).format("No text"))
-        m = await utils.answer(m, self.strings("prefcgpt", m).format("Generating..."))
-        async with httpx.AsyncClient(timeout=300) as client:
-            response = await client.post(
-                self.config["CGPT_ENDPOINT"],
-                headers={
-                    "Authorization": f"Bearer {token}",
-                },
-                json={
-                    "model": self.config["CGPT_MODEL"],
-                    "messages": self.messages_history + [
-                        {"role": "user", "content": prompt}
-                    ],
-                    "temperature": self.config["CGPT_TEMPERATURE"],
-                },
-            )
-            j = response.json()
-            if response.status_code != 200:
-                if self.config["DEBUG"]:
-                    return await utils.answer(
-                        m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                    )
-                return await utils.answer(
-                    m,
-                    self.strings("prefcgpt", m).format(
-                        f"<b>Error:</b> {response.status_code} {response.reason_phrase}"
-                    ),
-                )
-            if self.config["DEBUG"]:
-                return await utils.answer(
-                    m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                )
-            text = j["choices"][0]["message"]["content"].strip("\n").strip(" ")
-            self.messages_history.append({"role": "user", "content": prompt})
-            self.messages_history.append({"role": "assistant", "content": text})
-
-            if j["choices"][0]["finish_reason"] == "length":
-                text += "\n<code>TOKEN_LIMIT. Use .config to change them.</code>"
-
-            await utils.answer(
-                m,
-                self.strings("prefcgpt", m).format(
-                    self.strings("result", m).format(
-                        prompt=prompt, text=text, **j["usage"]
-                    )
-                ),
-            )
-
-    @loader.owner
-    async def cgptresetcmd(self, m: types.Message):
-        "Reset ChatGPT history"
-        self.messages_history = [] + self.messages_history_default
-        await utils.answer(m, self.strings("prefcgpt", m).format("History reset"))
-
-    @loader.owner
-    async def omodercmd(self, m: types.Message):
-        "turn chat text moderation with moderation endpoint (eng only)"
-        token = self._db.get(self._db_name, "token")
-        if not token:
-            return await utils.answer(
-                m,
-                self.strings("prefom", m).format("No token set! Use .setgpt <token>"),
-            )
-
-        if not m.chat:
-            return await utils.answer(
-                m, self.strings("prefom", m).format("Only chat command")
-            )
-
-        chats: List[int] = self._db.get(self._db_name, "moderation", [])
-        if m.chat.id not in chats:
-            chats.append(m.chat.id)
-            await utils.answer(
-                m, self.strings("prefom", m).format("Moderation enabled for this chat")
-            )
-        else:
-            chats.remove(m.chat.id)
-            await utils.answer(
-                m, self.strings("prefom", m).format("Moderation disabled for this chat")
-            )
-        self._db.set(self._db_name, "moderation", chats)
-
-    async def watcher(self, m: types.Message):
-        if not isinstance(m, types.Message):
-            return
-        if not m.chat:
-            return
-        chats: List[int] = self._db.get(self._db_name, "moderation", [])
-        if m.chat.id not in chats:
-            return
-        token = self._db.get(self._db_name, "token")
-        async with httpx.AsyncClient(timeout=300) as client:
-            response = await client.post(
-                self.config["MODERATION_ENDPOINT"],
-                headers={
-                    "Authorization": f"Bearer {token}",
-                },
-                json={"input": m.raw_text},
-            )
-            j = response.json()
-            if response.status_code != 200:
-                if self.config["DEBUG"]:
-                    return await utils.answer(
-                        m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                    )
-                return await utils.answer(
-                    m,
-                    self.strings("prefcgpt", m).format(
-                        f"<b>Error:</b> {response.status_code} {response.reason_phrase}"
-                    ),
-                )
-            if self.config["DEBUG"]:
-                return await utils.answer(
-                    m, "<code>{}</code>".format(str(json.dumps(j, indent=1)))
-                )
-            if j["results"]["flagged"]:
-                return await m.delete()
+                ]
+            ),
+        )
