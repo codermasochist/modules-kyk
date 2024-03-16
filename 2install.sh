@@ -46,10 +46,7 @@ printf "\n\n\e[3;34;40m Installing...\e[0m\n\n"
 
 printf "\r\033[0;34mPreparing for installation...\e[0m"
 
-touch hikka-install.log
-if [ ! x"$SUDO_USER" = x"" ]; then
-	chown "$SUDO_USER:" hikka-install.log
-fi
+# Удалено создание и изменение владельца файла hikka-install.log
 
 if [ -d "Hikka/hikka" ]; then
 	cd Hikka || {
