@@ -49,7 +49,7 @@ if [ -d "Hikka/hikka" ]; then
 fi
 if [ -f ".setup_complete" ]; then
 	# If hikka is already installed by this script
-	PYVER="3.10"
+	PYVER="3"
 	printf "\rExisting installation detected. Hikka is already installed.\n"
 fi
 
