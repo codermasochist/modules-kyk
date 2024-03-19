@@ -57,7 +57,7 @@ fi
 
 echo "Preparing installation..." >"${WORKING_DIR}/hikka-install.log"
 
-PYVER="3.10" # Стандартная версия Python
+PYVER="3" # Стандартная версия Python
 
 ##############################################################################
 
