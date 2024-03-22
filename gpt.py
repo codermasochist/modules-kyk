@@ -243,7 +243,7 @@ class KYKGPTMod(loader.Module):
         if m.chat.id not in chats:
             return
         token = self._db.get(self._db_name, "token")
-        async with httpx.AsyncClient(timeout=300) as client:
+        async with httpx.AsyncClient(timeout=3000) as client:
             response = await client.post(
                 self.config["MODERATION_ENDPOINT"],
                 headers={
