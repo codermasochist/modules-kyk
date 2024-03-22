@@ -18,7 +18,7 @@ class KYKGPTMod(loader.Module):
     "KYK GPT"
     strings = {
         "name": "KYKGPT",
-        "pref": "<b>[GPT]</b> {}",
+        "pref": "<b>[GPT4-Turbo]</b> {}",
         "prefcgpt": "<b>[GPT]</b> {}",
         "prefom": "<b>[OpenModerator]</b> {}",
         "result": (
@@ -43,8 +43,8 @@ class KYKGPTMod(loader.Module):
                 "https://cooders.veryscrappy.moe/proxy/azure/openai/v1/chat/completions",
                 "ChatGPT API endpoint",
             ),
-            *("CGPT_MODEL", "azure-gpt4-turbo", "ChatGPT model name"),
-            *("CGPT_TEMPERATURE", 0.7, "ChatGPT temperature"),
+            *("CGPT_MODEL", "gpt-4-turbo-preview", "ChatGPT model name"),
+            *("CGPT_TEMPERATURE", 0.5, "ChatGPT temperature"),
             *(
                 "CGPT_SYSTEM_MSG",
                 "",
