@@ -40,7 +40,7 @@ class KYKGPTMod(loader.Module):
             *("DEBUG", False, "Debug mode for answers"),
             *(
                 "CGPT_ENDPOINT",
-                "https://cooders.veryscrappy.moe/proxy/azure/openai/v1/chat/completions",
+                "https://whiterose1.hopto.org/proxy/v1/chat/completions",
                 "ChatGPT API endpoint",
             ),
             *("CGPT_MODEL", "gpt-4-turbo-preview", "ChatGPT model name"),
