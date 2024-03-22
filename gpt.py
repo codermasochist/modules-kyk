@@ -95,7 +95,7 @@ class KYKGPTMod(loader.Module):
             return await utils.answer(m, self.strings("pref", m).format("Нет текста"))
 
         m = await utils.answer(m, self.strings("pref", m).format("Генерирую ответ..."))
-        async with httpx.AsyncClient(timeout=300) as client:
+        async with httpx.AsyncClient(timeout=3000) as client:
             response = await client.post(
                 self.config["COMPLETION_ENDPOINT"],
                 headers={
@@ -154,7 +154,7 @@ class KYKGPTMod(loader.Module):
         if not prompt:
             return await utils.answer(m, self.strings("prefcgpt", m).format("Введи запрос!"))
         m = await utils.answer(m, self.strings("prefcgpt", m).format("Генерирую ответ..."))
-        async with httpx.AsyncClient(timeout=300) as client:
+        async with httpx.AsyncClient(timeout=3000) as client:
             response = await client.post(
                 self.config["CGPT_ENDPOINT"],
                 headers={
