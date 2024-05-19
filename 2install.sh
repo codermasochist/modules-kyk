@@ -90,12 +90,13 @@ EOL
 
 printf "\r\033[K\033[0;32mconfig.json created!\e[0m"
 printf "\n\r\033[0;34mInstalling python dependencies...\e[0m"
-
+runin python$PYVER -m pip install --upgrade -q --disable-pip-version-check --no-warn-script-location -r requirements.txt
 runin python$PYVER -m pip install --upgrade pip setuptools wheel --user
 runin python$PYVER -m pip install -r requirements.txt --upgrade --user --no-warn-script-location --disable-pip-version-check || {
 	errorin "Requirements failed!"
 	exit 4
 }
+runin python$PYVER -m pip install -U urllib3 requests
 rm -f "${WORKING_DIR}/hikka-install.log"
 touch "${WORKING_DIR}/.setup_complete"
 
