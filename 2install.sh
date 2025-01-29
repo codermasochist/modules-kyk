@@ -83,4 +83,4 @@ rm -f "${WORKING_DIR}/heroku-install.log"
 touch "${WORKING_DIR}/.setup_complete"
 
 printf "\r\033[K\033[0;32mDependencies installed!\e[0m"
-printf "\n\033[0;32mHeroku installation complete! To start it, run: python$PYVER -m heroku\e[0m\n\n"
+printf "\n\033[0;32mHeroku installation complete! To start it, run: python$PYVER -m hikka\e[0m\n\n"
